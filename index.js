@@ -6,34 +6,50 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ⚠️ YAHAN APNI 5SIM API KEY DALNA (Jo 5sim.net se mili hai)
-const API_KEY = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3OTk5NDU0OTUsImlhdCI6MTc2ODQwOTQ5NSwicmF5IjoiYTllMjdjNTBmYzBjOTFiYjg0NDdhOTMzNmM4NTkxYjAiLCJzdWIiOjM3MzY1MzV9.xQZ1c7eV9d-kQF80sSohKjEc_7QQlNfUnHGIXys5-N0q6zD2bbuGoCG5tGo9ut_8HDIUFT0_1rAS3A5WJ9wK96rWYMK1F1L8q7__7XJpjudaAkMiJio5v7gKiXfs5KcQLRlBQSZ7042T7tgfV7hRlISCy8zaBaSgRj05K0TwJa5e4gR6MfG0heyXjPsqNs7dokcCEFNRFpdzI2jWmt9C9kgXjvDkVD0aWow9VU-UwhrzP_9aCbO4GaSZXPmf9HkROTSKPaMCTSSV-Aki39ukIkaObSbOFxIjodRFKZ6PT0yHd5RAcIO58yrsnI0pY154USSOun9ogBGsybiLmNu-bg"; 
+// ⚠️ YAHAN SMS-ACTIVATE KI API KEY DALNA
+const API_KEY = "821f10Ac0376756b28A20f7A5483efbc"; 
 
-// 1. BUY NUMBER API
+// 1. BUY NUMBER (India = 22)
 app.post('/buy-number', async (req, res) => {
-    const { country, operator, product } = req.body;
+    const { product } = req.body; // Product e.g. 'wa' for WhatsApp
+    
+    // Service Codes: whatsapp -> wa, telegram -> tg, instagram -> ig
+    let serviceCode = 'wa'; 
+    if(product.includes('telegram')) serviceCode = 'tg';
+    if(product.includes('instagram')) serviceCode = 'ig';
+    if(product.includes('google')) serviceCode = 'go';
+
     try {
-        const url = `https://5sim.net/v1/user/buy/activation/${country}/${operator}/${product}`;
-        const response = await axios.get(url, {
-            headers: { 'Authorization': 'Bearer ' + API_KEY, 'Accept': 'application/json' }
-        });
-        res.json({ success: true, data: response.data });
+        // 22 is code for India
+        const url = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${API_KEY}&action=getNumber&service=${serviceCode}&country=22`;
+        
+        const response = await axios.get(url);
+        const data = response.data; // Example: ACCESS_NUMBER:123456:919876543210
+
+        if (data.includes('ACCESS_NUMBER')) {
+            const parts = data.split(':');
+            res.json({ 
+                success: true, 
+                data: { id: parts[1], phone: '+' + parts[2] } 
+            });
+        } else {
+            res.json({ success: false, message: "No Stock: " + data });
+        }
     } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: "Error or Low Balance" });
+        res.json({ success: false, message: "Server Error" });
     }
 });
 
-// 2. CHECK OTP API
+// 2. CHECK OTP
 app.get('/check-otp/:orderId', async (req, res) => {
     try {
-        const url = `https://5sim.net/v1/user/check/${req.params.orderId}`;
-        const response = await axios.get(url, {
-            headers: { 'Authorization': 'Bearer ' + API_KEY, 'Accept': 'application/json' }
-        });
-        
-        if (response.data.sms && response.data.sms.length > 0) {
-            res.json({ success: true, otp: response.data.sms[0].code });
+        const url = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${API_KEY}&action=getStatus&id=${req.params.orderId}`;
+        const response = await axios.get(url);
+        const data = response.data; // Example: STATUS_OK:123456
+
+        if (data.includes('STATUS_OK')) {
+            const otp = data.split(':')[1];
+            res.json({ success: true, otp: otp });
         } else {
             res.json({ success: false, message: "Waiting..." });
         }
