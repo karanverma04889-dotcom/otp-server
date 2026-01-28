@@ -11,33 +11,36 @@ const API_KEY = "821f10Ac0376756b28A20f7A5483efbc";
 
 // Country Code Mapping (Dialing Code -> SMS-Activate ID)
 const countryMapping = {
-    '91': 22,  // India
-    '1': 187,  // USA
-    '7': 0,    // Russia
-    '44': 16,  // UK
-    '62': 6,   // Indonesia
-    '55': 73,  // Brazil
-    '84': 10,  // Vietnam
-    '63': 4,   // Philippines
-    '66': 52,  // Thailand
-    '92': 66,  // Pakistan
-    '880': 60, // Bangladesh
-    '234': 19, // Nigeria
-    '254': 8,  // Kenya
-    '20': 21,  // Egypt
-    '27': 31,  // South Africa
-    '60': 7,   // Malaysia
-    '86': 3,   // China
-    '49': 43,  // Germany
-    '33': 78,  // France
-    '34': 56,  // Spain
-    '380': 1   // Ukraine
+    '91': 22,   // India
+    '1': 187,   // USA
+    '7': 0,     // Russia
+    '44': 16,   // UK
+    '62': 6,    // Indonesia
+    '55': 73,   // Brazil
+    '84': 10,   // Vietnam
+    '63': 4,    // Philippines
+    '66': 52,   // Thailand
+    '92': 66,   // Pakistan
+    '880': 60,  // Bangladesh
+    '234': 19,  // Nigeria
+    '254': 8,   // Kenya
+    '20': 21,   // Egypt
+    '27': 31,   // South Africa
+    '60': 7,    // Malaysia
+    '86': 3,    // China
+    '49': 43,   // Germany
+    '33': 78,   // France
+    '34': 56,   // Spain
+    '380': 1,   // Ukraine
+    '977': 81,  // Nepal
+    '94': 64,   // Sri Lanka
+    '1000': 36  // Canada (Internal Code to separate from USA)
 };
 
 // 1. BUY NUMBER API
 app.post('/buy-number', async (req, res) => {
     // Frontend sends 'country' as dialing code (e.g., '91', '1')
-    const { country, product } = req.body; 
+    let { country, product } = req.body; 
     
     // Service Codes Mapping
     let serviceCode = 'wa'; // Default WhatsApp
@@ -46,7 +49,7 @@ app.post('/buy-number', async (req, res) => {
     if(product.includes('google') || product.includes('gmail')) serviceCode = 'go';
     if(product.includes('facebook')) serviceCode = 'fb';
     if(product.includes('amazon')) serviceCode = 'am';
-    if(product.includes('flipkart')) serviceCode = 'bd'; // Flipkart often uses generic or dedicated if available
+    if(product.includes('flipkart')) serviceCode = 'bd'; 
     if(product.includes('twitter')) serviceCode = 'tw';
     if(product.includes('uber')) serviceCode = 'ub';
     if(product.includes('tinder')) serviceCode = 'oi';
